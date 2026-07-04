@@ -128,11 +128,11 @@ Największa baza historii współpracy z pracownikami ZZP.
 <div class="card">
 <h2>➕ Dodaj zgłoszenie</h2>
 
-<input placeholder="Imię i nazwisko">
+<input id="name" placeholder="Imię i nazwisko">
 
-<input placeholder="Numer telefonu">
+<input id="phone" placeholder="Numer telefonu">
 
-<textarea placeholder="Opisz sytuację..."></textarea>
+<textarea id="description" placeholder="Opisz sytuację..."></textarea>
 
 <div class="example">
 <b>Przykład</b><br>
@@ -140,7 +140,7 @@ Jan Kowalski +31 612345678.<br>
 Nie przyszedł na projekt i przestał odbierać telefon.
 </div>
 
-<button>Dodaj zgłoszenie</button>
+<button onclick="addWorker()">Dodaj zgłoszenie</button>
 
 </div>
 
@@ -162,5 +162,20 @@ Nie przyszedł na projekt i przestał odbierać telefon.
 </div>
 
 </div>
+<script>
+async function addWorker(){
+const name=document.getElementById('name').value.trim();
+const phone=document.getElementById('phone').value.trim();
+const description=document.getElementById('description').value.trim();
+if(!name||!phone||!description){alert('Uzupełnij wszystkie pola.');return;}
+const btn=event.target;const old=btn.innerText;btn.disabled=true;btn.innerText='Wysyłanie...';
+try{
+const res=await fetch('https://zzpcheck.app.n8n.cloud/webhook/add-worker',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,description})});
+if(res.ok){alert('✅ Zgłoszenie zostało dodane.');document.getElementById('name').value='';document.getElementById('phone').value='';document.getElementById('description').value='';}
+else{alert('Błąd podczas zapisu.');}
+}catch(e){alert('Nie można połączyć z serwerem.');}
+finally{btn.disabled=false;btn.innerText=old;}
+}
+</script>
 </body>
 </html>
