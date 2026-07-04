@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZZP Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:'Inter',sans-serif;
+background:#0A1020;
+color:#F8FAFC;
+}
+.container{
+max-width:760px;
+margin:40px auto;
+padding:24px;
+}
+.badge{
+display:inline-block;
+padding:8px 16px;
+background:#22C55E;
+color:#09111F;
+font-weight:800;
+border-radius:999px;
+letter-spacing:.3px;
+}
+h1{
+font-size:52px;
+line-height:1.05;
+margin:18px 0 10px;
+}
+.subtitle{
+font-size:20px;
+color:#94A3B8;
+margin-bottom:28px;
+}
+.card{
+background:#121A2D;
+border:1px solid #26334B;
+border-radius:22px;
+padding:24px;
+margin-bottom:24px;
+}
+.card h2{
+margin:0 0 20px;
+font-size:32px;
+}
+input,textarea{
+width:100%;
+background:#0B1323;
+border:1px solid #2E3D59;
+border-radius:16px;
+padding:16px;
+color:#fff;
+font-size:16px;
+margin-bottom:16px;
+}
+textarea{min-height:170px;resize:vertical;}
+button{
+width:100%;
+height:58px;
+border:none;
+border-radius:16px;
+background:#22C55E;
+color:#09111F;
+font:800 17px Inter,sans-serif;
+cursor:pointer;
+transition:.2s;
+}
+button:hover{filter:brightness(1.05);}
+.example{
+font-size:14px;
+color:#8EA3BF;
+margin-bottom:18px;
+line-height:1.5;
+}
+.stats{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:16px;
+margin-top:10px;
+}
+.stat{
+background:#121A2D;
+border:1px solid #26334B;
+border-radius:18px;
+padding:22px 12px;
+text-align:center;
+}
+.num{
+font-size:42px;
+font-weight:800;
+}
+.lab{
+margin-top:8px;
+font-size:15px;
+color:#A9B6CB;
+}
+@media(max-width:700px){
+h1{font-size:42px}
+.card h2{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="badge">ZZP CHECK</div>
+
+<h1>Sprawdź pracownika<br>przed projektem</h1>
+
+<div class="subtitle">
+Największa baza historii współpracy z pracownikami ZZP.
+</div>
+
+<div class="card">
+<h2>🔎 Sprawdź pracownika</h2>
+<input id="search" placeholder="Numer telefonu lub imię">
+<button onclick="searchWorker()">Sprawdź pracownika</button>
+<div id="result" style="display:none;margin-top:18px;padding:18px;border-radius:16px;background:#0B1323;border:1px solid #2E3D59;"></div>
+</div>
+
+<div class="card">
+<h2>➕ Dodaj zgłoszenie</h2>
+
+<input id="name" placeholder="Imię i nazwisko">
+
+<input id="phone" placeholder="Numer telefonu">
+
+
+<select id="category" style="width:100%;background:#0B1323;border:2px solid #475569;border-radius:16px;padding:16px;color:#FFFFFF;font-size:16px;margin-bottom:16px;appearance:auto;-webkit-appearance:menulist;">
+<option value="" disabled selected>▼ Wybierz powód zgłoszenia</option>
+<option>Nie przyszedł na projekt</option>
+<option>Porzucił projekt</option>
+<option>Alkohol / narkotyki</option>
+<option>Fałszywe doświadczenie</option>
+<option>Konflikt na projekcie</option>
+</select>
+
+<input id="recruiter" placeholder="Firma / Rekruter">
+<textarea id="description" placeholder="Opisz sytuację..."></textarea>
+
+<div class="example">
+<b>Przykład</b><br>
+Jan Kowalski +31 612345678.<br>
+Nie przyszedł na projekt i przestał odbierać telefon.
+</div>
+
+<button onclick="addWorker()">Dodaj zgłoszenie</button>
+
+</div>
+
+<div class="stats">
+<div class="stat">
+<div class="num">128</div>
+<div class="lab">Pracowników</div>
+</div>
+
+<div class="stat">
+<div class="num">342</div>
+<div class="lab">Zgłoszeń</div>
+</div>
+
+<div class="stat">
+<div class="num">18</div>
+<div class="lab">Rekruterów</div>
+</div>
+</div>
+
+</div>
+<script>
+
+
+async function searchWorker(){
+const value=document.getElementById('search').value.trim();
+if(!value){alert('Wpisz numer telefonu lub imię');return;}
+const result=document.getElementById('result');
+result.style.display='block';
+result.innerHTML='⏳ Szukanie...';
+
+try{
+ const res=await fetch('https://zzpcheck.app.n8n.cloud/webhook/search-worker',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({phone:value,name:value})
+ });
+
+ const data=await res.json();
+
+ if(!data.found){
+   result.innerHTML=`<div style="padding:18px;border-radius:16px;background:#12331E;border:1px solid #22C55E">
+   <div style="font-size:22px;font-weight:800;color:#4ADE80;">✅ Brak zgłoszeń</div>
+   <div style="margin-top:8px;color:#CBD5E1;">Nie znaleziono żadnych zgłoszeń.</div>
+   </div>`;
+   return;
+ }
+
+ const reports = Array.isArray(data.reports) ? data.reports : [data];
+
+ result.innerHTML=`
+ <div style="padding:14px;border-radius:14px;background:#3A1111;border:1px solid #EF4444;margin-bottom:18px">
+   <div style="font-size:22px;font-weight:800">⚠️ Znaleziono ${reports.length} zgłoszeń</div>
+ </div>` +
+ reports.map((r,i)=>`
+ <div style="background:#111827;border:1px solid #334155;border-radius:18px;padding:18px;margin-bottom:16px">
+   <div style="font-size:20px;font-weight:800;margin-bottom:12px">🚨 Zgłoszenie #${i+1}</div>
+   <div><b>👤 ${r.name||'-'}</b></div>
+   <div style="margin-top:10px">📞 <b>Telefon:</b> ${r.phone||'-'}</div>
+   <div>⚠️ <b>Powód:</b> ${r.category||'-'}</div>
+   <div>🏢 <b>Rekruter:</b> ${r.recruiter||'-'}</div>
+   <div>📅 <b>Data:</b> ${r.date||r.property_date?.start?.split('T')[0]||'-'}</div>
+   <div style="margin-top:12px;padding-top:12px;border-top:1px solid #334155">
+      <b>📝 Opis</b><br>${r.description||'-'}
+   </div>
+ </div>`).join("");
+}catch(e){
+ result.innerHTML='<span style="color:#ef4444">Błąd połączenia z serwerem.</span>';
+}
+}
+
+
+async function addWorker(){
+const name=document.getElementById('name').value.trim();
+const phone=document.getElementById('phone').value.trim();
+const category=document.getElementById('category').value;
+const recruiter=document.getElementById('recruiter').value.trim();
+const description=document.getElementById('description').value.trim();
+if(!name||!phone||!category||!description){alert('Uzupełnij wszystkie pola.');return;}
+const btn=event.target;const old=btn.innerText;btn.disabled=true;btn.innerText='Wysyłanie...';
+try{
+const res=await fetch('https://zzpcheck.app.n8n.cloud/webhook/add-worker',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,category,recruiter,description})});
+if(res.ok){alert('✅ Zgłoszenie zostało dodane.');document.getElementById('name').value='';document.getElementById('phone').value='';document.getElementById('category').value='';document.getElementById('recruiter').value='';document.getElementById('description').value='';}
+else{alert('Błąd podczas zapisu.');}
+}catch(e){alert('Nie można połączyć z serwerem.');}
+finally{btn.disabled=false;btn.innerText=old;}
+}
+</script>
+</body>
+</html>
